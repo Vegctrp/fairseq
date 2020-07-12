@@ -756,8 +756,8 @@ class TransformerDecoder(FairseqIncrementalDecoder):
         if self.project_in_dim is not None:
             x = self.project_in_dim(x)
 
-        if positions is not None:
-            x += positions
+        #if positions is not None:
+        #    x += positions
 
         if self.layernorm_embedding is not None:
             x = self.layernorm_embedding(x)
