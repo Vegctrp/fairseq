@@ -364,8 +364,8 @@ class TransformerEncoder(FairseqEncoder):
     def forward_embedding(self, src_tokens):
         # embed tokens and positions
         x = embed = self.embed_scale * self.embed_tokens(src_tokens)
-        if self.embed_positions is not None:
-            x = embed + self.embed_positions(src_tokens)
+        #if self.embed_positions is not None:
+        #    x = embed + self.embed_positions(src_tokens)
         if self.layernorm_embedding is not None:
             x = self.layernorm_embedding(x)
         x = F.dropout(x, p=self.dropout, training=self.training)
@@ -406,7 +406,12 @@ class TransformerEncoder(FairseqEncoder):
         encoder_states = [] if return_all_hiddens else None
 
         # encoder layers
-        for layer in self.layers:
+        for idx, layer in enumerate(self.layers):
+            x = x.transpose(0, 1)
+            posemb =  self.embed_positions(src_tokens, idx)
+            x = x + posemb 
+            x = x.transpose(0, 1)
+
             x = layer(x, encoder_padding_mask)
             if return_all_hiddens:
                 assert encoder_states is not None
@@ -729,18 +734,18 @@ class TransformerDecoder(FairseqIncrementalDecoder):
             alignment_layer = self.num_layers - 1
 
         # embed positions
-        positions = (
-            self.embed_positions(
-                prev_output_tokens, incremental_state=incremental_state
-            )
-            if self.embed_positions is not None
-            else None
-        )
+        #positions = (
+        #    self.embed_positions(
+        #        prev_output_tokens, incremental_state=incremental_state
+        #    )
+        #    if self.embed_positions is not None
+        #    else None
+        #)
 
         if incremental_state is not None:
             prev_output_tokens = prev_output_tokens[:, -1:]
-            if positions is not None:
-                positions = positions[:, -1:]
+        #    if positions is not None:
+        #        positions = positions[:, -1:]
 
         # embed tokens and positions
         x = self.embed_scale * self.embed_tokens(prev_output_tokens)
@@ -770,6 +775,9 @@ class TransformerDecoder(FairseqIncrementalDecoder):
         attn: Optional[Tensor] = None
         inner_states: List[Optional[Tensor]] = [x]
         for idx, layer in enumerate(self.layers):
+            x = x.transpose(0, 1)
+            x = x + self.embed_positions(prev_output_tokens, idx)
+            x = x.transpose(0, 1)
             if incremental_state is None and not full_context_alignment:
                 self_attn_mask = self.buffered_future_mask(x)
             else:
