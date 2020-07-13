@@ -104,6 +104,13 @@ class SinusoidalPositionalEmbedding(nn.Module):
             .view(bsz, seq_len, -1)
             .detach()
         )
+        tweight = SinusoidalPositionalEmbedding.get_embedding(self.padding_idx + 1 + 6, self.embedding_dim, self.padding_idx)
+        tweight = tweight.to(self._float_tensor)
+        temb = (
+            tweight.index_select(0, positions.view(-1))
+            .view(bsz, 6, -1)
+            .detach()
+        )
         if time is not None:
             timeemb = emb[0, time, :]
             timeemb = timeemb.repeat(bsz, seq_len).view(bsz, seq_len,-1)
