@@ -408,7 +408,7 @@ class TransformerEncoder(FairseqEncoder):
         # encoder layers
         for idx, layer in enumerate(self.layers):
             x = x.transpose(0, 1)
-            posemb =  self.embed_positions(src_tokens, idx)
+            posemb =  self.embed_positions(src_tokens, None, None, None, idx)
             x = x + posemb 
             x = x.transpose(0, 1)
 
@@ -776,7 +776,7 @@ class TransformerDecoder(FairseqIncrementalDecoder):
         inner_states: List[Optional[Tensor]] = [x]
         for idx, layer in enumerate(self.layers):
             x = x.transpose(0, 1)
-            x = x + self.embed_positions(prev_output_tokens, idx)
+            x = x + self.embed_positions(prev_output_tokens, None, None, None, idx)
             x = x.transpose(0, 1)
             if incremental_state is None and not full_context_alignment:
                 self_attn_mask = self.buffered_future_mask(x)
